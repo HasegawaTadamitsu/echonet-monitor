@@ -85,104 +85,16 @@ class HomeAirConditionerClass
           str += "unknown value."
         end
         ret << str
-      end
-    
-    end
+      else
+        tmp = Array.new
+        tmp.push val
+        ret << DeviceObjectSuperClass.print_debug( tmp )
+      end ## end of case
+    end  ## end of property each
     return ret
   end ## end of print_debug
 end
 
-class DeviceObjectSuperClass
-  def self.print_debug(property)
-    ret = []
-    property.each do |val|
-      epc =val.epc
-      case epc
-      when 0x80
-        str = "Operation status 0x#{val.edt[0].to_hex}:"
-        if    val.edt[0] == 0x30
-          ret << str +"ON"
-        elsif val.edt[0] == 0x31
-          ret << str + "OFF"
-        else
-          ret << str + " unknown value"
-        end
-      when 0x81
-        ret  << "Installation location <<undefined>>"
-      when 0x82
-        ret  << "Standard version information"
-        ret  << "1st 0x#{val.edt[0]}"
-        ret  << "2nd 0x#{val.edt[1]}"
-        ret  << "3rd #{val.edt[2].chr} 0x#{val.edt[2]}"
-        ret  << "4th 0x#{val.edt[3]}"
-      when 0x83
-        ret  << "Identification number <<undefined>>"
-      when 0x84
-        ret  << "Measured instantaneous power consumption <<undefined>>"
-      when 0x85
-        val1 = val.edt[0]
-        val2 = val.edt[1]
-        val3 = val.edt[2]
-        val4 = val.edt[3]
-        total = (val4  + val3 * 2^8 + val2 * 2^16 + val1 * 2^32) * 0.001
-        ret << "Measured cumulative power consumption. 0x#{val1.to_hex} 0x#{val2.to_hex} " +
-          "0x#{val3.to_hex} 0x#{val4.to_hex} #{total} kWh"
-      when 0x86
-        ret  << "Manufacturer’s fault cod<<undefined>>"
-      when 0x87
-        ret  << "Current limit setting <<undefined>>"
-      when 0x88
-        str ="Fault statu:0x#{val.edt[0].to_hex}:"
-        if  val.edt[0] == 0x41
-          ret << str + " Fult  occurred"
-        elsif val.edt[0] == 0x42
-          ret << str + "No fault"
-        else
-          ret << str + "unknown value"
-        end
-      when 0x89
-        ret  << "Fault description <<undefined>>"
-      when 0x8a
-        ret  << "Manufacturer code <<undefined>>"
-      when 0x8b
-        ret  << "Business facility code<<undefined>>"
-      when 0x8c
-        str ="Product code:"
-        12.times do |i|
-          str += val.edt[i].chr
-        end
-        ret << str
-      when 0x8d
-        str ="Product number:"
-        12.times do |i|
-          str += val.edt[i].chr
-        end
-        ret << str
-      when 0x8e
-        ret  << "Production date <undefined>>"
-      when 0x8f
-        str ="Power-saving operation setting :0x#{val.edt[0].to_hex}:"
-        if  val.edt[0] == 0x41
-          ret << str + " Operating in power-savineg mode "
-        elsif val.edt[0] == 0x42
-          ret << str + " Operating in normal mode "
-        else
-          ret << str + "unknown value"
-        end
-      when 0x90..0x92
-        ret << "unkown epc code 0x#{epc.to_hex}"
-      when 0x93
-        ret << "Remote control setting << undefind>>"
-      when 0x94..0x9f
-        ret << "unkown epc code 0x#{epc.to_hex}"
-      else
-        return nil
-      end # end of when
-    end
-    return ret
-  end # end of def 
-
-end
 
 class NodeProfileClass
   def self.check(eoj)
@@ -215,8 +127,102 @@ class NodeProfileClass
           ret.concat eoj.print_debug
         end # end of times
       else
-        ret << "epc 0x#{epc.to_hex}:unknown"
-      end # end of when
+        tmp = Array.new
+        tmp.push val
+        ret << DeviceObjectSuperClass.print_debug( tmp )
+      end # end of case
+    end # end of propety_each
+    return ret
+  end # end of def 
+end
+
+class DeviceObjectSuperClass
+  def self.print_debug(property)
+    ret = []
+    property.each do |val|
+      epc =val.epc
+      case epc
+      when 0x80
+        str = "Operation status 0x#{val.edt[0].to_hex}:"
+        if    val.edt[0] == 0x30
+          ret << str +"ON"
+        elsif val.edt[0] == 0x31
+          ret << str + "OFF"
+        else
+          ret << str + " unknown value"
+        end
+      when 0x81
+        ret  << "Installation location <<unprogramming>>"
+      when 0x82
+        str = "Standard version information :"
+        str += "#{val.edt[0].chr} "
+        str += "#{val.edt[1].chr} "
+        str += "#{val.edt[2].chr} "
+        str += "#{val.edt[3].chr}"
+        ret << str
+      when 0x83
+        ret  << "Identification number <<unprogramming>>"
+      when 0x84
+        ret  << "Measured instantaneous power consumption <<unprogramming>>"
+      when 0x85
+        val1 = val.edt[0]
+        val2 = val.edt[1]
+        val3 = val.edt[2]
+        val4 = val.edt[3]
+        total = (val4  + val3 * 2^8 + val2 * 2^16 + val1 * 2^32) * 0.001
+        ret << "Measured cumulative power consumption. 0x#{val1.to_hex} 0x#{val2.to_hex} " +
+          "0x#{val3.to_hex} 0x#{val4.to_hex} #{total} kWh"
+      when 0x86
+        ret  << "Manufacturer’s fault cod<<unprogramming>>"
+      when 0x87
+        ret  << "Current limit setting <<unprogramming>>"
+      when 0x88
+        str ="Fault statu:0x#{val.edt[0].to_hex}:"
+        if  val.edt[0] == 0x41
+          ret << str + " Fult  occurred"
+        elsif val.edt[0] == 0x42
+          ret << str + "No fault"
+        else
+          ret << str + "unknown value"
+        end
+      when 0x89
+        ret  << "Fault description <<unprogramming>>"
+      when 0x8a
+        ret  << "Manufacturer code <<unprogramming>>"
+      when 0x8b
+        ret  << "Business facility code<<unprogramming>>"
+      when 0x8c
+        str ="Product code:"
+        12.times do |i|
+          str += val.edt[i].chr
+        end
+        ret << str
+      when 0x8d
+        str ="Product number:"
+        12.times do |i|
+          str += val.edt[i].chr
+        end
+        ret << str
+      when 0x8e
+        ret  << "Production date <unprogramming>>"
+      when 0x8f
+        str ="Power-saving operation setting :0x#{val.edt[0].to_hex}:"
+        if  val.edt[0] == 0x41
+          ret << str + " Operating in power-savineg mode "
+        elsif val.edt[0] == 0x42
+          ret << str + " Operating in normal mode "
+        else
+          ret << str + "unknown value"
+        end
+      when 0x90..0x92
+        ret << "unkown epc code 0x#{epc.to_hex}"
+      when 0x93
+        ret << "Remote control setting << undefind>>"
+      when 0x94..0x9f
+        ret << "unkown epc code 0x#{epc.to_hex}"
+      else
+        ret << "un programing epc code 0x#{epc.to_hex}"
+      end # end of case
     end
     return ret
   end # end of def 
@@ -229,19 +235,12 @@ class EPCHelper
   end
 
   def print_debug
-    ret = []
-    val = DeviceObjectSuperClass.print_debug @property
-    unless  val.nil?
-      return ret.concat val
-    end
-    ret << "EPC info eoj=#{@eoj.to_str}"
     if NodeProfileClass.check(@eoj)
-      return ret.concat NodeProfileClass.print_debug(@property)
+      return NodeProfileClass.print_debug(@property)
     elsif HomeAirConditionerClass.check(@eoj)
-      return ret.concat HomeAirConditionerClass.print_debug(@property)
+      return HomeAirConditionerClass.print_debug(@property)
     end
-    ret[0]=ret[0]+" unmatch."
-    return ret
+    return nil
   end
 end
 
@@ -437,9 +436,17 @@ class EchoData < BinData::Record
       ret << " #{val}"
     end
     epc_helper = EPCHelper.new edata.property,edata.seoj
-    ret.concat epc_helper.print_debug
+    tmp = epc_helper.print_debug
+    return ret.concat tmp  if tmp != nil     
+
+    epc_helper = EPCHelper.new edata.property,edata.deoj
+    tmp = epc_helper.print_debug
+    return ret.concat tmp  if tmp != nil     
+
+    ret << "unknown epc"
     return ret
   end
+
   def print_debug_str
     ret = print_debug
     return ret.join "\n"
