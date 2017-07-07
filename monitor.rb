@@ -215,11 +215,11 @@ class DeviceObjectSuperClass
           ret << str + "unknown value"
         end
       when 0x90..0x92
-        ret << "unkown epc code 0x#{epc.to_hex}"
+        ret << "unknown epc code 0x#{epc.to_hex}"
       when 0x93
         ret << "Remote control setting << undefind>>"
       when 0x94..0x9f
-        ret << "unkown epc code 0x#{epc.to_hex}"
+        ret << "unknown epc code 0x#{epc.to_hex}"
       else
         ret << "un programing epc code 0x#{epc.to_hex}"
       end # end of case
