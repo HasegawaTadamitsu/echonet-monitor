@@ -1,6 +1,7 @@
 #!/usr/bin/ruby
 
 # coding: utf-8
+require 'optparse'
 require "socket"
 require "ipaddr"
 require 'bindata'
@@ -62,24 +63,55 @@ class EchonetData < BinData::Record
 end
 
 
+
+option={}
+OptionParser.new do |opt|
+  opt.on('-1',     'switch on' ){|v| option[:switch] = true}
+  opt.on('-0',     'switch off'){|v| option[:switch] = false}
+  opt.on('-t val', 'set temp ' ){|v| option[:temp] = v.to_i }
+  opt.parse!(ARGV)
+end
+if option.count == 0
+  puts "error. need any options"
+  exit 1
+end
+temp=option[:temp]
+if temp != nil and ( temp < 20 or 30 < temp )
+  puts "over range temp #{temp}"
+  exit 1
+end
+
 seoj = BEOJ.new
 seoj.set_values 0x05,0xff,0x01
 deoj = BEOJ.new
 deoj.set_values 0x01,0x30,0x03  #change here!!
 
 edata = EData.new
-edata.set_values seoj,deoj,EData::ESV_INF_REQ
+edata.set_values seoj,deoj,EData::ESV_Set_Get
 
-command=%w( 0x80 0xb3 0xba 0xbb 0xbe 0xa0 0xa1 0xa4 )
-command.each do | com |
+sw=option[:switch]
+if sw != nil 
   property = PropertyData.new
-  property[:epc] = com.to_i(16)
-  property[:pdc] = 0x00
+  property[:epc] = 0x80
+  property[:pdc] = 0x001
+  property[:edt][0] = (sw)? 0x30:0x31
+  property[:edt][1] = 0x00
   edata.add_property property
 end
 
+temp=option[:temp]
+if temp != nil
+  property = PropertyData.new
+  property[:epc] = 0xb3 # set temp
+  property[:pdc] = 0x001
+  property[:edt][0] = temp
+  edata.add_property property
+end
+
+
 echonetdata = EchonetData.new
 echonetdata.set_val 0x1111,edata
+
 
 ip="192.168.33.111"    #change here!!
 u = UDPSocket.new()
