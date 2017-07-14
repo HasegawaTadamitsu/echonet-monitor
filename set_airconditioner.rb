@@ -73,7 +73,7 @@ OptionParser.new do |opt|
   opt.on('-n val', 'airconditioner number'  ){|v| option[:aircon_no] = v.to_i }
   opt.parse!(ARGV)
 end
-if option.count == 0
+if option.count == 1
   puts "error. need any options"
   exit 1
 end
