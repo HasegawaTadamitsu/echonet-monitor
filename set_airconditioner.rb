@@ -65,10 +65,12 @@ end
 
 
 option={}
+option[:aircon_no]=0x03 # default EOJ instanceCode. set target instance code.
 OptionParser.new do |opt|
   opt.on('-1',     'switch on' ){|v| option[:switch] = true}
   opt.on('-0',     'switch off'){|v| option[:switch] = false}
   opt.on('-t val', 'set temp ' ){|v| option[:temp] = v.to_i }
+  opt.on('-n val', 'airconditioner number'  ){|v| option[:aircon_no] = v.to_i }
   opt.parse!(ARGV)
 end
 if option.count == 0
@@ -84,7 +86,7 @@ end
 seoj = BEOJ.new
 seoj.set_values 0x05,0xff,0x01
 deoj = BEOJ.new
-deoj.set_values 0x01,0x30,0x03  #change here!!
+deoj.set_values 0x01,0x30,option[:aircon_no]
 
 edata = EData.new
 edata.set_values seoj,deoj,EData::ESV_Set_Get
