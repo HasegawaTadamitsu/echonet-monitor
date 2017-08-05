@@ -169,7 +169,7 @@ class DeviceObjectSuperClass
         val2 = val.edt[1]
         val3 = val.edt[2]
         val4 = val.edt[3]
-        total = (val4  + val3 * 2^8 + val2 * 2^16 + val1 * 2^32) * 0.001
+        total = (val4  + val3 * 2^8 + val2 * 2^16 + val1 * 2^24) * 0.001
         ret << "Measured cumulative power consumption. 0x#{val1.to_hex} 0x#{val2.to_hex} " +
           "0x#{val3.to_hex} 0x#{val4.to_hex} #{total} kWh"
       when 0x86
@@ -491,8 +491,8 @@ end
 
 
 udps = UDPSocket.open()
-udps.bind("0.0.0.0",3610)
-mreq = IPAddr.new("224.0.23.0").hton + IPAddr.new("0.0.0.0").hton
+udps.bind("192.168.33.202",3610)
+mreq = IPAddr.new("224.0.23.0").hton + IPAddr.new("192.168.33.202").hton
 udps.setsockopt(Socket::IPPROTO_IP, Socket::IP_ADD_MEMBERSHIP, mreq)
 
 loop do

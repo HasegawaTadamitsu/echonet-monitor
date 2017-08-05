@@ -65,7 +65,7 @@ end
 seoj = BEOJ.new
 seoj.set_values 0x05,0xff,0x01
 deoj = BEOJ.new
-deoj.set_values 0x01,0x30,0x04  #change here!!
+deoj.set_values 0x01,0x30,0x03  #change here!!
 
 edata = EData.new
 edata.set_values seoj,deoj,EData::ESV_INF_REQ
