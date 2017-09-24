@@ -4,6 +4,7 @@
 require 'bindata'
 require 'serialport'
 require 'timeout'
+require "./smart_meter_password.rb"
 
 #require "socket"
 #require "ipaddr"
@@ -87,6 +88,10 @@ class SerialConnect
     send "SKTABLE 2"
     p recv
     send "SKTABLE 3"
+    p recv
+    send "SKTABLE E"
+    p recv
+    send "SKTABLE F"
     p recv
   end
 
