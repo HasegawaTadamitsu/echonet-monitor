@@ -4,7 +4,14 @@
 require 'bindata'
 require 'serialport'
 require 'timeout'
+
 require "./smart_meter_password.rb"
+# this file like ...this
+#class SmartMeterPassword
+#  ID="000000AAAAAA000000000000000AAAAA"
+#  PASSWORD="AAAAAAAAAAAA"
+#end
+#
 
 #require "socket"
 #require "ipaddr"
