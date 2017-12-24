@@ -39,10 +39,12 @@ class HomeAirConditionerClass
         ret << "Measured value of room relative humidity 0x#{val.to_hex}: #{val}"
       when 0xbb
         val = val.edt[0]
+        if val > 127 then val = 256 - val end
         ret << "Measured value of room temperature 0x#{val.to_hex}: #{val}"
-
       when 0xbe
         val = val.edt[0]
+        next  if val == 0x7e  ## non measured
+        if val > 127 then val = 256 - val end
         ret << "Measured outdoor air temperature 0x#{val.to_hex}: #{val}"
       when 0xa0
         val = val.edt[0]
