@@ -1,4 +1,5 @@
 #!/usr/bin/ruby
+# coding: utf-8
 
 # coding: utf-8
 require 'bindata'
@@ -73,6 +74,57 @@ class EchonetData < BinData::Record
 end
 
 
+class PanDesc
+  def initialize args_datas
+    begin
+      datas = args_datas
+
+      data = datas.shift
+      @sender =  chaeck_and_raise( data,/^EVENT 20 (?<sender>.+)/)
+
+      data = datas.shift
+      #drop this
+      chaeck_and_raise( data,/^EPANDESC/) 
+
+      data = datas.shift
+      @channel =  chaeck_and_raise data,/^  Channel:(?<channel>.+)/
+
+      data = datas.shift
+      @channel_page  =  chaeck_and_raise data,/^  Channel Page:(?<channel_page>.+)/
+
+      data = datas.shift
+      @pan_id =  chaeck_and_raise data,/^  Pan ID:(?<pan_id>.+)/
+      
+      data = datas.shift
+      @addr =  chaeck_and_raise data,/^  Addr:(?<addr>.+)/
+
+      data = datas.shift
+      @lqi =  chaeck_and_raise data,/^  LQI:(?<lqi>.+)/
+
+      data = datas.shift
+      @pair_id =  chaeck_and_raise data,/^  PairID:(?<pair_id>.+)/
+      
+    rescue => e
+      p e 
+      raise "bad paddesc format #{args_datas}"
+    end
+    p @sender
+    p @channel
+    p @channel_page
+    p @pan_id
+    p @addr
+    p @lqi
+    p @pair_id
+  end
+
+  private
+  def chaeck_and_raise data, matcher
+    res = data.match( matcher )
+    raise "bad format #{data}" if res == nil
+    return res[1]
+  end
+  
+end
 
 class SerialConnect
   
@@ -82,24 +134,24 @@ class SerialConnect
 
   def reset
     send "SKVER"
-    p recv
+    p recv_ok
     send "SKAPPVER"
-    p recv
+    p recv_ok
     send "SKRESET"
-    p recv
+    p recv_ok
   end
 
   def show_status
     send "SKTABLE 1"
-    p recv
+    p recv_ok
     send "SKTABLE 2"
-    p recv
+    p recv_ok
     send "SKTABLE 3"
-    p recv
+    p recv_ok
     send "SKTABLE E"
-    p recv
+    p recv_ok
     send "SKTABLE F"
-    p recv
+    p recv_ok
   end
 
   def send str
@@ -107,23 +159,24 @@ class SerialConnect
     @sp.write str + "\r\n"
   end
 
-  def recv_event
+  def recv_active_event
     recev_data= Array.new
-    begin
-      Timeout.timeout(30) do 
-        data = @sp.gets
-        recev_data.push data
-        if data.start_with? "EVENT"
-          return recev_data
+    loop do 
+      begin
+        Timeout.timeout(30) do
+          data = @sp.gets
+          recev_data.push data
+          if  data.start_with? "EVENT 22"
+            return recev_data
+          end
         end
-        raise "not event data recev.#{recev_data}"
-      end
       rescue Timeout::Error => e
         return recev_data
-    end
+      end
+    end ## end of loop
   end
 
-  def recv
+  def recv_ok
     recev_data= Array.new
     begin
       Timeout.timeout(5) do 
@@ -144,10 +197,21 @@ class SerialConnect
     return false         
   end
 end
-    
+
 sc = SerialConnect.new "/dev/ttyUSB0"
 sc.reset
 sc.show_status
+
+sc.send "SKSREG SFE 1"
+p sc.recv_ok
+
+sc.send "SKSETPWD C " + SmartMeterPassword::PASSWORD
+p sc.recv_ok
+
+sc.send "SKSETRBID " + SmartMeterPassword::ID
+p sc.recv_ok
+
 sc.send "SKSCAN 2 FFFFFFFF 6"
-p sc.recv
-p sc.recv_event
+p sc.recv_ok
+pan_rows = sc.recv_active_event
+a = PanDesc.new pan_rows

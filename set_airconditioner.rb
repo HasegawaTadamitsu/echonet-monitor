@@ -70,7 +70,7 @@ OptionParser.new do |opt|
   opt.on('-1',     'switch on' ){|v| option[:switch] = true}
   opt.on('-0',     'switch off'){|v| option[:switch] = false}
   opt.on('-t val', 'set temp ' ){|v| option[:temp] = v.to_i }
-  opt.on('-n val', 'airconditioner number'  ){|v| option[:aircon_no] = v.to_i }
+  opt.on('-n val', 'airconditioner number 3..2F 4..1F'  ){|v| option[:aircon_no] = v.to_i }
   opt.parse!(ARGV)
 end
 if option.count == 1
@@ -97,7 +97,6 @@ if sw != nil
   property[:epc] = 0x80
   property[:pdc] = 0x001
   property[:edt][0] = (sw)? 0x30:0x31
-  property[:edt][1] = 0x00
   edata.add_property property
 end
 
@@ -118,6 +117,7 @@ echonetdata.set_val 0x1111,edata
 ip="192.168.33.111"    #change here!!
 u = UDPSocket.new()
 u.connect(ip,3610)
-# p echonetdata.to_hex
-u.send(echonetdata.to_binary_s,0)
+data=echonetdata.to_binary_s 
+data = data + "\x00"
+u.send(data,0)
 u.close
