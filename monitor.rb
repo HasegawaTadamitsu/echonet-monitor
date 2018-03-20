@@ -4,6 +4,74 @@ require "ipaddr"
 require 'bindata'
 require "pry"
 
+class AirCleanerClass
+  def self.check(eoj)
+    eoj.class_group_code == 0x01 and eoj.class_code == 0x35
+  end
+  def self.print_debug(property)
+    ret = []
+    property.each do |val|
+      epc =val.epc
+      case epc
+      when 0xa0
+        sw_val = val.edt[0]
+        str="Air flow rate Setting 0x#{sw_val.to_hex}:"
+        if sw_val == 0x41
+          ret << str + "Automatic"
+        else
+          ret << str + sw_val
+        end
+      when 0xe1
+        sw_val = val.edt[0]
+        str="Filter change notice 0x#{sw_val.to_hex}:"
+        if sw_val == 0x41
+          ret << str + "Found"
+        elsif sw_val == 0x42
+          ret << str + "Not Found"
+        else
+          ret << str + "unknown status"
+        end
+      when 0xc0
+        sw_val = val.edt[0]
+        str="Air pollution detection status 0x#{sw_val.to_hex}:"
+        if sw_val == 0x41
+          ret << str + "detected"
+        elsif sw_val == 0x42
+          ret << str + "non-detected"
+        else
+          ret << str + "unknown status"
+        end
+      when 0xc1
+        sw_val = val.edt[0]
+        str="Smoke status 0x#{sw_val.to_hex}:"
+        if sw_val == 0x41
+          ret << str + "Smoke detected status"
+        elsif sw_val == 0x42
+          ret << str + "Smoke detection status not"
+        else
+          ret << str + "unknown status"
+        end
+      when 0xc2
+        sw_val = val.edt[0]
+        str="Optiocal catalyst operation setting 0x#{sw_val.to_hex}:"
+        if sw_val == 0x41
+          ret << str + "ON"
+        elsif sw_val == 0x42
+          ret << str + "OFF"
+        else
+          ret << str + "unknown status"
+        end
+      else
+        tmp = Array.new
+        tmp.push val
+        ret << DeviceObjectSuperClass.print_debug( tmp )
+      end
+    end  ## end of property each
+    return ret
+  end ## end of print_debug
+end
+
+
 class HomeAirConditionerClass
   def self.check(eoj)
     eoj.class_group_code == 0x01 and eoj.class_code == 0x30
@@ -165,13 +233,19 @@ class DeviceObjectSuperClass
       when 0x83
         ret  << "Identification number <<unprogramming>>"
       when 0x84
-        ret  << "Measured instantaneous power consumption <<unprogramming>>"
+        val1 = val.edt[0]
+        val2 = val.edt[1]
+        total = ( val2.to_f   + val1.to_f*(2.0**8) )
+        ret  << "Measured instantaneous power consumption." +
+                     "0x#{val1.to_hex} 0x#{val2.to_hex} #{total}W"
       when 0x85
         val1 = val.edt[0]
         val2 = val.edt[1]
         val3 = val.edt[2]
         val4 = val.edt[3]
-        total = (val4  + val3 * 2**8 + val2 * 2**16 + val1 * 2**4) * 0.001
+        total = (val4.to_f  + val3.to_f*(2.0**8) +
+                 val2.to_f*(2.0**16) +
+                                  val1.to_f*(2.0**24) ) * 0.001
         ret << "Measured cumulative power consumption. 0x#{val1.to_hex} 0x#{val2.to_hex} " +
           "0x#{val3.to_hex} 0x#{val4.to_hex} #{total} kWh"
       when 0x86
@@ -216,6 +290,20 @@ class DeviceObjectSuperClass
         else
           ret << str + "unknown value"
         end
+      when 0x97
+        val1 = val.edt[0]
+        val2 = val.edt[1]
+        ret << "Current time setting." +
+             "0x#{val1.to_hex} 0x#{val2.to_hex} #{val1}:#{val2}"
+      when 0x98
+        val1 = val.edt[0]
+        val2 = val.edt[1]
+        val3 = val.edt[1]
+        val4 = val.edt[1]
+        ret << "Current date setting." +
+          "0x#{val1.to_hex} 0x#{val2.to_hex} 0x#{val3.to_hex} 0x#{val4.to_hex} " +
+          "#{val1 * 1000 + val2} #{val3} #{val4}"
+
       when 0x90..0x92
         ret << "unknown epc code 0x#{epc.to_hex}"
       when 0x93
@@ -241,6 +329,8 @@ class EPCHelper
       return NodeProfileClass.print_debug(@property)
     elsif HomeAirConditionerClass.check(@eoj)
       return HomeAirConditionerClass.print_debug(@property)
+    elsif AirCleanerClass.check(@eoj)
+      return AirCleanerClass.print_debug(@property)
     end
     return nil
   end
